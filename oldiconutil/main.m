@@ -70,8 +70,9 @@ int main(int argc, const char * argv[])
 						NSLog( @"\tConverting PNG to JPEG 2000" );
 						
 						NSBitmapImageRep	*	theImage = [[NSBitmapImageRep alloc] initWithData: currBlockData];
-						NSData				*	jp2Data = [theImage representationUsingType: NSJPEG2000FileType properties: [NSDictionary dictionary]];
-						uint32_t				newSize = NSSwapInt( (uint32_t) [jp2Data length] ) +8;
+						NSData				*	jp2Data = [theImage representationUsingType: NSJPEG2000FileType properties:
+							[NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:1.0] forKey:NSImageCompressionFactor]];
+						uint32_t				newSize = NSSwapInt( (uint32_t) [jp2Data length] + 8 );
 						[outputData appendBytes: &newSize length: 4];	// Write size.
 						[outputData appendData: jp2Data];
 					}
