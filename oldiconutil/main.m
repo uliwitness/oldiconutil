@@ -13,14 +13,45 @@
 #define FILTER_TOC_OUT			1
 
 
+#define SYNTAX				"oldiconutil {--help|<icnsFilePath>}"
+#define SUMMARY				"Convert a .icns icon file holding PNG-encoded icons (supported\nin 10.6) to JPEG 2000-encoded icons (supported in 10.5)."
+#define PARAMDESCRIPTIONS	"--help - Show this message.\n" \
+							"icnsFilePath - Path of input icns file. Output file will have _10_5 appended to its name\n"
+
+
 int main(int argc, const char * argv[])
 {
+	if( argc < 2 )
+	{
+		fprintf( stderr, "Error: Syntax is " SYNTAX );
+		return 1;
+	}
+	
+	if( strcasecmp( argv[1], "--help" ) == 0 )
+	{
+		printf( "Syntax: " SYNTAX "\n" SUMMARY "\n\n" PARAMDESCRIPTIONS );
+		return 0;
+	}
+	
 	@autoreleasepool
 	{
 		NSString		*	inputPath = [NSString stringWithUTF8String: argv[1]];
-		NSData			*	inputData = [NSData dataWithContentsOfFile: inputPath];
-		NSMutableData	*	outputData = [NSMutableData dataWithLength: 0];
+		BOOL				isDirectory = NO;
 	    
+		if( !inputPath || ![[NSFileManager defaultManager] fileExistsAtPath: inputPath isDirectory: &isDirectory] || isDirectory )
+		{
+			fprintf( stderr, "Error: Can't find input file." );
+			return 2;
+		}
+		
+		NSData			*	inputData = [NSData dataWithContentsOfFile: inputPath];
+		if( !inputData )
+		{
+			fprintf( stderr, "Error: Can't load input file." );
+			return 3;
+		}
+		
+		NSMutableData	*	outputData = [NSMutableData dataWithLength: 0];
 		const char* theBytes = [inputData bytes];
 		NSUInteger	currOffs = 4;	// Skip 'icns'
 		uint32_t	fileSize = NSSwapInt( *(uint32_t*)(theBytes +currOffs) );
