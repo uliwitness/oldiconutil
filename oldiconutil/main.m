@@ -29,7 +29,7 @@ int main(int argc, const char * argv[])
 	
 	if( strcasecmp( argv[1], "--help" ) == 0 )
 	{
-		printf( "Syntax: " SYNTAX "\n" SUMMARY "\n\n" PARAMDESCRIPTIONS );
+		printf( "Syntax: " SYNTAX "\n" SUMMARY "\n\n" PARAMDESCRIPTIONS "\n\n(c) 2012 by Elgato Systems GmbH, all rights reserved." );
 		return 0;
 	}
 	
@@ -127,3 +127,4 @@ int main(int argc, const char * argv[])
 	}
     return 0;
 }
+
