@@ -1,22 +1,27 @@
 oldiconutil
 ===========
 
-A tool to postprocess iconutil-generated .icns files to make them compatible with Mac OS X 10.5
+A tool to postprocess iconutil-generated .icns files to make them compatible
+with Mac OS X 10.5
 
 Syntax
 ------
 
-	oldiconutil <icnsFilePath>
+	oldiconutil [--inplace] <icnsFilePath>
 
 Takes the given .icns file and creates a new icon that displays correctly
 on Mac OS X 10.5 next to it. E.g. give it AndysNewIcon.icns and it creates
 a file AndysNewIcon_10_5.icns in the same directory.
 
+If you pass the --inplace option, it will replace the given file with the
+converted file instead of creating a new, renamed icon file.
+
 Background
 ----------
 
-In Mac OS X 10.6, Apple introduced support for PNG-compressed icon data in .icns files. In Mac OS X 10.8, Apple introduced support for Retina icons and the
-iconutil command-line tool for generating icons from a folder of PNG files.
+In Mac OS X 10.6, Apple introduced support for PNG-compressed icon data in
+.icns files. In Mac OS X 10.8, Apple introduced support for Retina icons and
+the iconutil command-line tool for generating icons from a folder of PNG files.
 
 However, iconutil only knows how to generate PNG-compressed icon data, which
 means that you can't use it to create a Retina icon that will still display

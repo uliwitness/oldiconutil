@@ -13,7 +13,7 @@
 #define FILTER_TOC_OUT			1
 
 
-#define SYNTAX				"oldiconutil {--help|<icnsFilePath>}"
+#define SYNTAX				"oldiconutil {--help|[--inplace] <icnsFilePath>}"
 #define SUMMARY				"Convert a .icns icon file holding PNG-encoded icons (supported\nin 10.6) to JPEG 2000-encoded icons (supported in 10.5)."
 #define PARAMDESCRIPTIONS	"--help - Show this message.\n" \
 							"icnsFilePath - Path of input icns file. Output file will have _10_5 appended to its name\n"
@@ -27,15 +27,30 @@ int main(int argc, const char * argv[])
 		return 1;
 	}
 	
+	BOOL	convertInPlace = NO;
+	int		nameArgumentPosition = 1;
+	
 	if( strcasecmp( argv[1], "--help" ) == 0 )
 	{
 		printf( "Syntax: " SYNTAX "\n" SUMMARY "\n\n" PARAMDESCRIPTIONS "\n\n(c) 2012 by Elgato Systems GmbH, all rights reserved." );
 		return 0;
 	}
+	else if( strcasecmp( argv[1], "--inplace" ) == 0 )
+	{
+		convertInPlace = YES;
+		nameArgumentPosition ++;
+
+		if( argc < (nameArgumentPosition +1) )
+		{
+			fprintf( stderr, "Error: Syntax is " SYNTAX );
+			return 4;
+		}
+	}
 	
 	@autoreleasepool
 	{
-		NSString		*	inputPath = [NSString stringWithUTF8String: argv[1]];
+		NSString		*	inputPath = [NSString stringWithUTF8String: argv[nameArgumentPosition]];
+		NSString		*	outputPath = convertInPlace ? inputPath : [[inputPath stringByDeletingPathExtension] stringByAppendingString: @"_10_5.icns"];
 		BOOL				isDirectory = NO;
 	    
 		if( !inputPath || ![[NSFileManager defaultManager] fileExistsAtPath: inputPath isDirectory: &isDirectory] || isDirectory )
@@ -123,7 +138,7 @@ int main(int argc, const char * argv[])
 		[outputData replaceBytesInRange: NSMakeRange(4,0) withBytes: &theSize length: 4];
 		 
 		NSLog( @"Writing out %ld bytes.", [outputData length] );
-		[outputData writeToFile: [[inputPath stringByDeletingPathExtension] stringByAppendingString: @"_10_5.icns"] atomically: NO];
+		[outputData writeToFile: outputPath atomically: NO];
 	}
     return 0;
 }
