@@ -80,13 +80,13 @@ int main(int argc, const char * argv[])
 				memmove( blockType, theBytes +currOffs, 4 );
 				currOffs += 4;
 				
-				NSLog( @"Found block '%s'", blockType );
+				printf( "Found block '%s'", blockType );
 				
 #if FILTER_TOC_OUT
 				if( strcmp(blockType,"TOC ") == 0 )
 				{
 					uint32_t	blockSize = NSSwapInt( *(uint32_t*)(theBytes +currOffs) );
-					NSLog( @"\tSkipping %d (+4) bytes.", blockSize );
+					printf( "\tSkipping %d (+4) bytes.", blockSize );
 					currOffs += blockSize -4;
 				}
 				else
@@ -97,23 +97,23 @@ int main(int argc, const char * argv[])
 					currOffs += 4;
 					NSData	*	currBlockData = [NSData dataWithBytes: theBytes +currOffs length: blockSize -8];
 					currOffs += blockSize -8;
-					uint32_t		startLong = *(uint32_t*)[currBlockData bytes];
-					bool			shouldConvert = startLong == 0x474E5089;
+					uint32_t	startLong = *(uint32_t*)[currBlockData bytes];
+					BOOL		shouldConvert = (startLong == 0x474E5089);	// PNG data starts with 'âPNG'.
 					
 					if( !shouldConvert || strcmp(blockType,"ic08") == 0 || strcmp(blockType,"ic10") == 0
 					   || strcmp(blockType,"ic13") == 0|| strcmp(blockType,"ic09") == 0 || strcmp(blockType,"ic12") == 0
 					   || strcmp(blockType,"ic07") == 0|| strcmp(blockType,"ic11") == 0 || strcmp(blockType,"ic14") == 0 )
 						;
 					else
-						shouldConvert = false;
+						shouldConvert = NO;
 					
 #if JUST_PASS_THROUGH
-					shouldConvert = false;
+					shouldConvert = NO;
 #endif
 					
-					if( shouldConvert )	// PNG file! '^aPNG'
+					if( shouldConvert )
 					{
-						NSLog( @"\tConverting PNG to JPEG 2000" );
+						printf( "\tConverting PNG to JPEG 2000" );
 						
 						NSBitmapImageRep	*	theImage = [[NSBitmapImageRep alloc] initWithData: currBlockData];
 						NSData				*	jp2Data = [theImage representationUsingType: NSJPEG2000FileType properties:
@@ -124,7 +124,7 @@ int main(int argc, const char * argv[])
 					}
 					else
 					{
-						NSLog( @"\tCopying data verbatim." );
+						printf( "\tCopying data verbatim." );
 						blockSize = NSSwapInt( blockSize );
 						[outputData appendBytes: &blockSize length: 4];	// Copy size.
 						[outputData appendData: currBlockData];
@@ -137,7 +137,7 @@ int main(int argc, const char * argv[])
 		uint32_t theSize = NSSwapInt( (uint32_t)[outputData length] +4 );
 		[outputData replaceBytesInRange: NSMakeRange(4,0) withBytes: &theSize length: 4];
 		 
-		NSLog( @"Writing out %ld bytes.", [outputData length] );
+		printf( "Writing out %ld bytes.", [outputData length] );
 		[outputData writeToFile: outputPath atomically: NO];
 	}
     return 0;
