@@ -16,7 +16,7 @@
 #define SYNTAX				"oldiconutil {--help|[--inplace] <icnsFilePath>}"
 #define SUMMARY				"Convert a .icns icon file holding PNG-encoded icons (supported\nin 10.6) to JPEG 2000-encoded icons (supported in 10.5)."
 #define PARAMDESCRIPTIONS	"--help - Show this message.\n" \
-							"icnsFilePath - Path of input icns file. Output file will have _10_5 appended to its name\n"
+							"icnsFilePath - Path of input icns file. Output file will have _10_5 appended to its name, unless the --inplace option is given, in which case it'll replace the input file.\n"
 
 
 int main(int argc, const char * argv[])
