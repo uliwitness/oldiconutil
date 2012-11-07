@@ -12,10 +12,13 @@ Convert a .icns icon file holding PNG-encoded icons (supported
 in 10.6) to JPEG 2000-encoded icons (supported in 10.5).
 
 --help - Show this message.
+
 icnsFilePath - Path of input icns file. Output file will have _10_5 appended to its name,
 unless the --inplace option is given, in which case it'll replace the input file.
+
 If --list is given, oldiconutil will simply print a description of the file.
-compression - One of the compression formats of tif, bmp, gif, jpg, png, jp2, immediately
+
+--compression - One of the compression formats of tif, bmp, gif, jpg, png, jp2, immediately
 followed by a number from 0.0 (best compression) through 1.0 (no compression) indicating how
 much to compress. If you do not provide a format, the default is jp2 (JPEG 2000), if you do
 not specify a compression factor, it defaults to 1.0 (uncompressed). Note not all formats
@@ -32,6 +35,9 @@ the iconutil command-line tool for generating icons from a folder of PNG files.
 However, iconutil only knows how to generate PNG-compressed icon data, which
 means that you can't use it to create a Retina icon that will still display
 properly on Mac OS X 10.5.
+
+Note: There seems to be a file size limit of some sort on 10.5 as well. Adjust
+the compression to reduce your icon's size if it still doesn't display on 10.5.
 
 Solution
 --------
