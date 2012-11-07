@@ -13,11 +13,11 @@
 #define FILTER_TOC_OUT			1
 
 
-#define SYNTAX				"oldiconutil {--help|[--inplace [--compression <fraction>]|--list] <icnsFilePath>}"
+#define SYNTAX				"oldiconutil {--help|[--inplace [--compression <compression>]|--list] <icnsFilePath>}"
 #define SUMMARY				"Convert a .icns icon file holding PNG-encoded icons (supported\nin 10.6) to JPEG 2000-encoded icons (supported in 10.5)."
 #define PARAMDESCRIPTIONS	"--help - Show this message.\n" \
 							"icnsFilePath - Path of input icns file. Output file will have _10_5 appended to its name, unless the --inplace option is given, in which case it'll replace the input file. If --list is given, oldiconutil will simply print a description of the file.\n" \
-							"fraction - A number from 0.0 (best compression) through 1.0 (no compression) indicating how much to compress.\n"
+							"compression - One of the compression formats of tif, bmp, gif, jpg, png, jp2, immediately followed by a number from 0.0 (best compression) through 1.0 (no compression) indicating how much to compress. If you do not provide a format, the default is jp2 (JPEG 2000), if you do not specify a compression factor, it defaults to 1.0 (uncompressed). Note not all formats may be recognized by Mac OS X Finder (especially in 10.5), but are provided for people who want to experiment.\n"
 
 
 int main(int argc, const char * argv[])
@@ -28,10 +28,12 @@ int main(int argc, const char * argv[])
 		return 1;
 	}
 	
-	BOOL		convertInPlace = NO;
-	BOOL		listOnly = NO;
-	int			nameArgumentPosition = 1;
-	NSNumber*	jpegCompressionObj = [NSNumber numberWithFloat: 1.0];
+	BOOL					convertInPlace = NO;
+	BOOL					listOnly = NO;
+	int						nameArgumentPosition = 1;
+	NSNumber*				jpegCompressionObj = [NSNumber numberWithFloat: 1.0];
+	NSBitmapImageFileType	compressionType = NSJPEG2000FileType;
+	NSString*				destCompression = @"jp2";
 	
 	if( strcasecmp( argv[1], "--help" ) == 0 )
 	{
@@ -71,9 +73,33 @@ int main(int argc, const char * argv[])
 			return 4;
 		}
 		
-		float	theCompression = [[NSString stringWithUTF8String: argv[nameArgumentPosition] ] floatValue];
-		jpegCompressionObj = [NSNumber numberWithFloat: theCompression];
+		NSString*		compStr = [[NSString stringWithUTF8String: argv[nameArgumentPosition] ] lowercaseString];
 		nameArgumentPosition++;
+		
+		// Find compression prefix (if available) and remove it so only number is left:
+		NSDictionary	*compressionTypes = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInteger: NSTIFFFileType], @"tif",
+											 [NSNumber numberWithInteger: NSBMPFileType], @"bmp",
+											 [NSNumber numberWithInteger: NSGIFFileType], @"gif",
+											 [NSNumber numberWithInteger: NSJPEGFileType], @"jpg",
+											 [NSNumber numberWithInteger: NSPNGFileType], @"png",
+											 [NSNumber numberWithInteger: NSJPEG2000FileType], @"jp2", nil];
+		for( NSString* prefix in compressionTypes.allKeys )
+		{
+			if( [compStr hasPrefix: prefix] )
+			{
+				destCompression = prefix;
+				compressionType = [[compressionTypes objectForKey: prefix] integerValue];
+				compStr = [compStr substringFromIndex: prefix.length];
+				break;
+			}
+		}
+		
+		// If a compression level has been specified, parse it from the remaining string and use it:
+		if( compStr.length > 0 )
+		{
+			float			theCompression = [compStr floatValue];
+			jpegCompressionObj = [NSNumber numberWithFloat: theCompression];
+		}
 	}
 
 	@autoreleasepool
@@ -149,7 +175,7 @@ int main(int argc, const char * argv[])
 					{
 						if( !listOnly )
 						{
-							printf( "\tConverting PNG to JPEG 2000\n" );
+							printf( "\tConverting PNG to %s\n", [destCompression UTF8String] );
 							
 							NSBitmapImageRep	*	theImage = [[NSBitmapImageRep alloc] initWithData: currBlockData];
 							NSData				*	jp2Data = [theImage representationUsingType: NSJPEG2000FileType properties:
@@ -189,6 +215,6 @@ int main(int argc, const char * argv[])
 			[outputData writeToFile: outputPath atomically: NO];
 		}
 	}
-	return 0;
+    return 0;
 }
 
