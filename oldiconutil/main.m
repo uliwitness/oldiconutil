@@ -61,7 +61,7 @@ int main(int argc, const char * argv[])
 		}
 	}
 	
-	else if( strcasecmp( argv[nameArgumentPosition], "--compression" ) == 0 )
+	if( strcasecmp( argv[nameArgumentPosition], "--compression" ) == 0 )
 	{
 		nameArgumentPosition ++;
 		
