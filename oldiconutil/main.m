@@ -31,7 +31,8 @@ int main(int argc, const char * argv[])
 	BOOL					convertInPlace = NO;
 	BOOL					listOnly = NO;
 	int						nameArgumentPosition = 1;
-	NSNumber*				jpegCompressionObj = [NSNumber numberWithFloat: 1.0];
+	float					jpegCompressionLevel = 1.f;
+	NSNumber*				jpegCompressionObj = [NSNumber numberWithFloat: jpegCompressionLevel];
 	NSBitmapImageFileType	compressionType = NSJPEG2000FileType;
 	NSString*				destCompression = @"jp2";
 	
@@ -94,11 +95,10 @@ int main(int argc, const char * argv[])
 			}
 		}
 		
-		// If a compression level has been specified, parse it from the remaining string and use it:
+		// If a compression level has been specified, parse it from the remaining string:
 		if( compStr.length > 0 )
 		{
-			float			theCompression = [compStr floatValue];
-			jpegCompressionObj = [NSNumber numberWithFloat: theCompression];
+			jpegCompressionLevel = [compStr floatValue];
 		}
 	}
 
@@ -173,9 +173,37 @@ int main(int argc, const char * argv[])
 					
 					if( shouldConvert )
 					{
+
+						// For JPEG2000, high compression levels work very well for large sizes,
+						// but cause very visible artefacts at smaller sizes.  So if using JPEG2000
+						// output format, don't apply compression for small sizes; use the specified
+						// compression for the largest 1024*1024 (ic10) size, and use less compression
+						// for medium sizes.
+						float jpegCompressionForSize = jpegCompressionLevel;
+						if ( [destCompression isEqualToString:@"jp2"] ) {
+
+							// Use no compression for the smallest sizes (ic11: 16*16@2x; ic12: 32*32@2x, ic07: 128*128)
+							if ( strcmp(blockType, "ic11") == 0 || strcmp(blockType, "ic12") == 0 || strcmp(blockType, "ic07") == 0 ) {
+								jpegCompressionForSize = 1.f;
+
+							// For the 256*256 sizes, halve the compression level (ic08: 256*256; ic13: 128*128@2x)
+							} else if ( strcmp(blockType, "ic08") == 0 || strcmp(blockType, "ic13") == 0 ) {
+								jpegCompressionForSize = (jpegCompressionForSize + 1.f) / 2.f;
+
+							// For the 512*512 sizes, use three-quarter compression (ic09: 512*512, ic14: 256*256@2x)
+							} else if ( strcmp(blockType, "ic09") == 0 || strcmp(blockType, "ic14") == 0 ) {
+								jpegCompressionForSize = ((jpegCompressionForSize * 3) + 1.f) / 4.f;
+							}
+						}
+						jpegCompressionObj = [NSNumber numberWithFloat: jpegCompressionForSize];
+
 						if( !listOnly )
 						{
-							printf( "\tConverting PNG to %s\n", [destCompression UTF8String] );
+							if ( [destCompression isEqualToString:@"jp2"] || [destCompression isEqualToString:@"jpg"] ) {
+								printf( "\tConverting PNG to %s (JPEG compression %f)\n", [destCompression UTF8String], jpegCompressionForSize );
+							} else {
+								printf( "\tConverting PNG to %s\n", [destCompression UTF8String] );
+							}
 							
 							NSBitmapImageRep	*	theImage = [[NSBitmapImageRep alloc] initWithData: currBlockData];
 							NSData				*	jp2Data = [theImage representationUsingType: NSJPEG2000FileType properties:
