@@ -6,12 +6,12 @@ with Mac OS X 10.5
 
 Syntax
 ------
-
+------
 Syntax: oldiconutil {--help|[--inplace [--compression <compression>]|--list] <icnsFilePath>}
 Convert a .icns icon file holding PNG-encoded icons (supported
 in 10.6) to JPEG 2000-encoded icons (supported in 10.5).
 
---help - Show this message.
+--help  -  Show this message.
 
 icnsFilePath - Path of input icns file. Output file will have _10_5 appended to its name,
 unless the --inplace option is given, in which case it'll replace the input file.
